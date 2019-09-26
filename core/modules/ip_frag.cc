@@ -87,7 +87,7 @@ IPFrag::FragmentPkt(Context *ctx, bess::Packet *p)
 				m->nb_segs = 1;
 				m->next = NULL;
 				rte_memcpy(ethh, &ethh_copy, sizeof(struct rte_ether_hdr));
-				
+
 				ethh = (struct rte_ether_hdr *)rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
 				iph = (struct rte_ipv4_hdr *)(ethh + 1);
 
