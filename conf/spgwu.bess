@@ -144,6 +144,11 @@ class Port:
                 # Direct control traffic from kernel to DPDK
                 spi -> self.fpo
 
+                # Direct fast path traffic to Frag module
+                frag = __bess_module__("{}Frag".format(name), 'IPFrag')
+                frag:1 -> self.fpo
+                frag:0 -> Sink()
+
                 tc = 'slow{}'.format(wid)
                 try:
                     bess.add_tc(tc, policy='round_robin', wid=wid)

@@ -33,6 +33,11 @@
  *              Else rte_pktmbuf_pool_create(...) { FAIL; ...}
  */
 #define NUM_MBUFS (TX_NUM_DESC*2) > (1.5*MBUF_CACHE_SIZE) ? (TX_NUM_DESC*2) : (2*MBUF_CACHE_SIZE)
+
+/**
+ * Enable BESS-based packet pool
+ */
+#define BESS_PKT_POOL		1
 /*----------------------------------------------------------------------------------*/
 class IPFrag final : public Module {
  public:
@@ -49,7 +54,11 @@ class IPFrag final : public Module {
 
  private:
 	bess::Packet *FragmentPkt(Context *ctx, bess::Packet *p);
+#ifdef BESS_PKT_POOL
+	bess::DpdkPacketPool *indirect_pktmbuf_pool = NULL;
+#else
 	struct rte_mempool *indirect_pktmbuf_pool = NULL;
+#endif
 };
 /*----------------------------------------------------------------------------------*/
 #endif  // BESS_MODULES_IPFRAG_H_

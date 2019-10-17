@@ -61,7 +61,12 @@ IPFrag::FragmentPkt(Context *ctx, bess::Packet *p)
 					       64,
 					       RTE_ETHER_MAX_LEN - RTE_ETHER_CRC_LEN - RTE_ETHER_HDR_LEN,
 					       m->pool,
-					       indirect_pktmbuf_pool);
+#ifdef BESS_PKT_POOL
+					       indirect_pktmbuf_pool->pool()
+#else
+					       indirect_pktmbuf_pool
+#endif
+					       );
 
 		if (unlikely(res < 0)) {
 			EmitPacket(ctx, p, DEFAULT_GATE);
@@ -148,7 +153,11 @@ IPFrag::DeInit()
 {
 	if (indirect_pktmbuf_pool != NULL) {
 		/* free allocated IP frags */
+#ifdef BESS_PKT_POOL
+		delete indirect_pktmbuf_pool;
+#else
 		rte_mempool_free(indirect_pktmbuf_pool);
+#endif
 		indirect_pktmbuf_pool = NULL;
 	}
 }
@@ -157,15 +166,19 @@ CommandResponse
 IPFrag::Init(const bess::pb::EmptyArg &) {
 
 	std::string pool_name = this->name() + "_indirect_mbuf_pool";
+#ifdef BESS_PKT_POOL
+	indirect_pktmbuf_pool = new bess::DpdkPacketPool();
+#else
 	indirect_pktmbuf_pool = rte_pktmbuf_pool_create(pool_name.c_str(),
 							NUM_MBUFS,
 							MBUF_CACHE_SIZE, 0,
 							RTE_MBUF_DEFAULT_BUF_SIZE,
 							rte_socket_id());
+#endif
 
 	if (indirect_pktmbuf_pool == NULL)
 		return CommandFailure(ENOMEM, "Cannot create indirect mempool!");
 	return CommandSuccess();
 }
 /*----------------------------------------------------------------------------------*/
-ADD_MODULE(IPFrag, "ip_frag", "IP Fragmentation module")
+ADD_MODULE(IPFrag, "ip_frag", "IPv4 Fragmentation module")
